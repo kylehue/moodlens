@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="UTF-8" />
+      <title>MoodLens</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link
+         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+         rel="stylesheet"
+      />
+      <style>
+         * {
+            font-family: "Inter", sans-serif !important;
+         }
+
+         body {
+            background: #f9fafb;
+            color: #111;
+            width: 300px;
+            padding: 20px;
+            border-radius: 12px;
+            box-sizing: border-box;
+         }
+
+         h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #3b82f6;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+         }
+
+         .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+         }
+
+         .toggle {
+            padding: 10px 0;
+            text-align: center;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            user-select: none;
+
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+         }
+
+         .toggle.active {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 3px 8px rgba(59, 130, 246, 0.35);
+            transform: scale(1.05);
+         }
+
+         .toggle:hover:not(.active) {
+            border-color: #93c5fd;
+            background: #f1f5f9;
+         }
+
+         .controls {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 0.25rem;
+         }
+
+         button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s ease, transform 0.1s ease;
+         }
+
+         button:hover:not(:disabled) {
+            background: #2563eb;
+            transform: scale(1.02);
+         }
+
+         button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+         }
+
+         label {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+         }
+
+         input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+         }
+      </style>
+   </head>
+   <body>
+      <h2>MoodLens</h2>
+
+      <div class="grid" id="emotionGrid">
+         <div class="toggle" data-mood="joy">
+            <span style="font-size: 1.5rem">😀</span>
+            <span>Joy</span>
+         </div>
+         <div class="toggle" data-mood="sadness">
+            <span style="font-size: 1.5rem">🥲</span>
+            <span>Sadness</span>
+         </div>
+         <div class="toggle" data-mood="anger">
+            <span style="font-size: 1.5rem">😡</span>
+            <span>Anger</span>
+         </div>
+         <div class="toggle" data-mood="love">
+            <span style="font-size: 1.5rem">🥰</span>
+            <span>Love</span>
+         </div>
+         <div class="toggle" data-mood="fear">
+            <span style="font-size: 1.5rem">😨</span>
+            <span>Fear</span>
+         </div>
+         <div class="toggle" data-mood="surprise">
+            <span style="font-size: 1.5rem">😱</span>
+            <span>Surprise</span>
+         </div>
+      </div>
+
+      <div class="controls">
+         <button id="filterBtn">Filter out selected moods</button>
+         <label style="width: fit-content">
+            <input type="checkbox" id="autoFilter" />
+            Auto-filter
+         </label>
+      </div>
+      <script src="popup.js"></script>
+   </body>
+</html>

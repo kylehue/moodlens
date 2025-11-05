@@ -1,0 +1,9 @@
+{
+   "editor.tabSize": 3,
+   "prettier.tabWidth": 3,
+   "editor.detectIndentation": false,
+   "prettier.useTabs": false,
+   "[python]": {
+      "editor.tabSize": 4
+   }
+}
