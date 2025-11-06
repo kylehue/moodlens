@@ -7,21 +7,13 @@ const SITES_SELECTORS = {
       "#contents > ytd-comment-thread-renderer",
       "#contents > ytd-comment-view-model",
    ],
-   "https://www.reddit.com/": ["shreddit-feed > article"],
+   "https://www.reddit.com/": ["shreddit-feed > article", "shreddit-comment > [slot='comment']"],
 };
 
 const API_URL = "http://localhost:5000/analyze_bulk";
 const MOOD_THRESHOLD = 0.6;
 
 let autoFilterInterval = null;
-let debounceTimer = null;
-
-function debounce(fn, delay = 1000) {
-   return (...args) => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => fn(...args), delay);
-   };
-}
 
 function getSiteSelectors() {
    const site = Object.keys(SITES_SELECTORS).find((url) =>
@@ -63,7 +55,7 @@ function blurElement(el, mood) {
    overlay.style.textAlign = "center";
    overlay.style.padding = "20px";
    overlay.style.borderRadius = "8px";
-   overlay.style.pointerEvents = "none";
+   overlay.style.pointerEvents = "all";
    overlay.style.backdropFilter = "blur(3px)";
 
    el.style.position = "relative";
@@ -77,7 +69,7 @@ function generateElementId(el) {
    return id;
 }
 
-async function _analyzeAndFilterContent(selectedMoods = []) {
+async function analyzeAndFilterContent(selectedMoods = []) {
    const selectors = getSiteSelectors();
    if (!selectors.length) return;
 
@@ -100,6 +92,10 @@ async function _analyzeAndFilterContent(selectedMoods = []) {
       unblocked.map((item) => [generateElementId(item), item])
    );
 
+   for (let el of unblocked) {
+      el.dataset.moodlensAnalyzed = "true";
+   }
+
    const payload = Object.entries(elementMap).map(([id, el]) => ({
       id,
       text: el.textContent.trim(),
@@ -119,7 +115,6 @@ async function _analyzeAndFilterContent(selectedMoods = []) {
          const { id, scores } = result;
          const el = elementMap[id];
          if (!el) return;
-         el.dataset.moodlensAnalyzed = "true";
 
          const moods = Object.entries(scores)
             .sort((a, b) => b[1] - a[1])
@@ -135,11 +130,8 @@ async function _analyzeAndFilterContent(selectedMoods = []) {
    }
 }
 
-// wrap server calls with debounce
-const analyzeAndFilterContent = debounce(_analyzeAndFilterContent, 1200);
-
 // start or stop auto filter efficiently
-function manageAutoFilter(autoFilterEnabled, moods) {
+function manageAutoFilter(autoFilterEnabled) {
    if (autoFilterEnabled) {
       console.log("MoodLens: Auto-filter activated.");
       if (autoFilterInterval) clearInterval(autoFilterInterval);
@@ -158,13 +150,13 @@ function manageAutoFilter(autoFilterEnabled, moods) {
 }
 
 // initialization
-chrome.storage.sync.get(["autoFilter", "moods"], (data) => {
-   const moods = data.moods || [];
-   manageAutoFilter(data.autoFilter, moods);
+chrome.storage.sync.get(["autoFilter"], (data) => {
+   manageAutoFilter(data.autoFilter);
 });
 
 // listen to manual trigger or autoFilter toggle
 chrome.runtime.onMessage.addListener((msg) => {
+   console.log(msg);
    if (msg.action === "runFilter") {
       chrome.storage.sync.get(["moods"], (data) => {
          analyzeAndFilterContent(data.moods || []);
