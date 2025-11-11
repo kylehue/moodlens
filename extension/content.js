@@ -7,8 +7,13 @@ const SITES_SELECTORS = {
       "#contents > ytd-comment-thread-renderer",
       "#contents > ytd-comment-view-model",
    ],
-   "https://www.reddit.com/": ["shreddit-feed > article", "shreddit-comment > [slot='comment']"],
+   "https://www.reddit.com/": [
+      "shreddit-feed > article",
+      "shreddit-comment > [slot='comment']",
+   ],
 };
+
+const COMMON_SELECTORS = ["p", "span"];
 
 const API_URL = "http://localhost:5000/analyze_bulk";
 const MOOD_THRESHOLD = 0.6;
@@ -70,29 +75,32 @@ function generateElementId(el) {
 }
 
 async function analyzeAndFilterContent(selectedMoods = []) {
-   const selectors = getSiteSelectors();
+   const selectors = getSiteSelectors().concat(COMMON_SELECTORS);
    if (!selectors.length) return;
 
-   const elements = selectors.flatMap((sel) =>
-      Array.from(document.querySelectorAll(sel))
-   );
+   const elements = selectors
+      .flatMap((sel) => Array.from(document.querySelectorAll(sel)))
+      .filter((el) => {
+         if (el.dataset.moodlensAnalyzed === "true") return false;
+         if (el.dataset.moodlensBlocked === "true") return false;
+         if (el.offsetParent === null) return false;
+         let isCommon = COMMON_SELECTORS.includes(el.tagName.toLowerCase());
+         let textLength = el.textContent?.trim().length || 0;
+         if (isCommon && textLength < 300) return false;
+         if (!isCommon && textLength < 20) return false;
+         return true;
+      });
 
-   const unblocked = elements.filter(
-      (el) =>
-         el.dataset.moodlensAnalyzed !== "true" &&
-         el.dataset.moodlensBlocked !== "true" &&
-         el.textContent?.trim().length >= 10
-   );
+   if (elements.length === 0) return;
 
-   if (unblocked.length === 0) return;
-
-   console.log(`MoodLens: Sending ${unblocked.length} elements for analysis.`);
+   console.log(elements);
+   console.log(`MoodLens: Sending ${elements.length} elements for analysis.`);
 
    const elementMap = Object.fromEntries(
-      unblocked.map((item) => [generateElementId(item), item])
+      elements.map((item) => [generateElementId(item), item])
    );
 
-   for (let el of unblocked) {
+   for (let el of elements) {
       el.dataset.moodlensAnalyzed = "true";
    }
 
@@ -111,6 +119,7 @@ async function analyzeAndFilterContent(selectedMoods = []) {
       const results = await res.json();
       if (!Array.isArray(results)) return console.error("Invalid API response");
 
+      console.log(results);
       results.forEach((result) => {
          const { id, scores } = result;
          const el = elementMap[id];
